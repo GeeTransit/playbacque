@@ -15,9 +15,9 @@ classifiers = [
 	"Programming Language :: Python :: 3.9",
 	"Topic :: Multimedia :: Sound/Audio :: Players",
 ]
-
-[[tool.poetry.packages]]
-include = "playbacque.py"
+packages = [
+	{ include = "playbacque.py" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
