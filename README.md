@@ -5,7 +5,7 @@ Loop play audio
 ## Usage
 
 ```sh
-> pipx install playbacque
+> pip install playbacque
 > playbacque "audio.wav"
 ```
 
