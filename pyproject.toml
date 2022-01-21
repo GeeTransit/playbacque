@@ -3,7 +3,18 @@ name = "playbacque"
 version = "0.1.0"
 description = "Loop play audio"
 authors = ["George Zhang <geetransit@gmail.com>"]
+repository = "https://github.com/GeeTransit/playbacque"
+readme = "README.md"
 license = "MIT"
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Intended Audience :: End Users/Desktop",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.9",
+	"Topic :: Multimedia :: Sound/Audio :: Players",
+]
 
 [[tool.poetry.packages]]
 include = "playbacque.py"
