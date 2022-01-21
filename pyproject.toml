@@ -3,6 +3,7 @@ name = "playbacque"
 version = "0.1.0"
 description = "Loop play audio"
 authors = ["George Zhang <geetransit@gmail.com>"]
+homepage = "https://pypi.org/project/playbacque/"
 repository = "https://github.com/GeeTransit/playbacque"
 readme = "README.md"
 license = "MIT"
