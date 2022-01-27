@@ -21,5 +21,3 @@ As an alternative, one can first convert to a .wav using FFmpeg and pipe into
 ```sh
 > ffmpeg -i "audio.mp3" -f wav pipe: | playbacque -
 ```
-
-Note when passing -, the entire stdin is buffered before playback

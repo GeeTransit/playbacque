@@ -3,6 +3,7 @@
 import argparse
 import io
 import sys
+import collections
 from collections.abc import Iterable
 from typing import Optional
 
@@ -15,20 +16,76 @@ def loop_stream_audio(
     file: soundfile.SoundFile,
     frames: Optional[int] = 65536,
     dtype: Optional[str] = "int16",
+    *,
+    seekable: Optional[bool] = None,
 ):
     """Forever yields audio chunks from the file
 
     - frames => 65536
     - dtype => "int16"
+    - seekable => file.seekable()
 
     Both arguments are passed to file.buffer_read to get the next chunk.
+
+    To loop the audio, seekable files use seeking, and unseekable ones use an
+    internal buffer instead.
 
     """
     if frames is None:
         frames = 65536
     if dtype is None:
         dtype = "int16"
+    if seekable is None:
+        seekable = file.seekable()
 
+    if not seekable:
+        # Samplesize is dtype * channels
+        samplesize = _DTYPE_SIZE[dtype] * file.channels
+        errors = []
+        def _error_append(err: int, prefix: str = ""):
+            if err != 0:
+                errors.append((err, prefix))
+
+        # Read blocks until EOF
+        buffers = collections.deque()
+        while True:
+            block = bytearray(frames * samplesize)
+
+            # libsndfile raises an SF_ERR_SYSTEM (2) error when EOF occurs
+            # inside a block so we're appending errors to a list for later
+            # processing.
+            original_error_check = soundfile._error_check
+            soundfile._error_check = _error_append
+            try:
+                frames_read = file.buffer_read_into(block, dtype=dtype)
+            finally:
+                soundfile._error_check = original_error_check
+
+            # Process errors
+            if errors:
+                for err, prefix in errors:
+                    if frames_read != frames and err == 2:
+                        # We probably hit EOF. Ignore error
+                        continue
+                    soundfile._error_check(err, prefix)
+                errors.clear()
+
+            # Truncate unwritten bytes
+            if frames_read != frames:
+                del block[frames_read * samplesize : ]
+
+            buffers.append(block)
+            yield block
+
+            # Break if it's the last block
+            if frames_read != frames:
+                break
+
+        # Yield buffers forever
+        while True:
+            yield from buffers
+
+    # Seekable files
     while True:
         while block := file.buffer_read(frames, dtype=dtype):
             yield block
@@ -118,15 +175,19 @@ def loop_play_audio(
     file: soundfile.SoundFile,
     *,
     dtype: Optional[str] = "int16",
+    seekable: Optional[bool] = None,
 ):
     """Seamlessly loop plays an audio file
 
     - file is the soundfile.SoundFile instance
     - dtype => "int16"
+    - seekable => file.seekable()
 
     """
     if dtype is None:
         dtype = "int16"
+    if seekable is None:
+        seekable = file.seekable()
 
     # Blocksize is 20 ms * dtype * channels
     blocksize = (
@@ -135,7 +196,7 @@ def loop_play_audio(
         * file.channels
     )
 
-    stream = loop_stream_audio(file, dtype=dtype)
+    stream = loop_stream_audio(file, dtype=dtype, seekable=seekable)
 
     # Matching the input's format so we don't need to do resampling / mixing
     with sounddevice.RawOutputStream(
@@ -153,7 +214,6 @@ def loop_play_audio(
 
 parser = argparse.ArgumentParser(
     description="Loop play audio",
-    epilog="Note when passing -, the entire stdin is buffered before playback",
 )
 parser.add_argument(
     "filename",
@@ -173,12 +233,10 @@ def main(argv: Optional[list[str]] = None):
     file = args.filename
 
     if file == "-":
-        # Buffer stdin into memory so we can seek too
-        file = io.BytesIO()
-        while data := sys.stdin.buffer.read(65536):
-            file.write(data)
-        file.seek(0)
-        sys.stdin.buffer.close()
+        # Even though file descriptors are technically not supported on
+        # Windows (see https://github.com/bastibe/python-soundfile/issues/63),
+        # stdin being 0 is _probably_ something that we can rely on.
+        file = 0
 
     with soundfile.SoundFile(file) as audio:
         try:
