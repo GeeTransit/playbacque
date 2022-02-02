@@ -274,6 +274,11 @@ parser.add_argument(
     action="store_true",
     help="file is PCM audio (48000 Hz signed 16 bit little endian stereo)",
 )
+parser.add_argument(
+    "-o", "--out",
+    action="store_true",
+    help="output PCM audio to stdout instead of playing it",
+)
 
 def main(argv: Optional[list[str]] = None):
     """Command line entry point
@@ -298,7 +303,16 @@ def main(argv: Optional[list[str]] = None):
     stream = loop_stream_ffmpeg(file, input_kwargs=input_kwargs)
 
     try:
-        play_stream(stream)
+        if args.out:
+            # Output to stdout if specified
+            _write = sys.stdout.buffer.write
+            for chunk in stream:
+                _write(chunk)
+
+        else:
+            # Play to default device
+            play_stream(stream)
+
     except KeyboardInterrupt:
         parser.exit()
 
