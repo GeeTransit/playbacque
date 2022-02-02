@@ -1,7 +1,6 @@
 """Loop play audio"""
 
 import argparse
-import io
 import sys
 import collections
 from collections.abc import Iterable
