@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "playbacque"
-version = "0.2.0"
+version = "0.2.0.post0"
 description = "Loop play audio"
 authors = ["George Zhang <geetransit@gmail.com>"]
 homepage = "https://pypi.org/project/playbacque/"
