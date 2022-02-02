@@ -9,6 +9,8 @@ Loop play audio
 > playbacque "audio.wav"
 ```
 
+Requires [FFmpeg](https://www.ffmpeg.org/) on PATH
+
 Use Ctrl+C to stop playback
 
 Supports most file formats (as this uses FFmpeg)
