@@ -3,92 +3,151 @@
 import argparse
 import sys
 import collections
+import contextlib
+import subprocess
 from collections.abc import Iterable
-from typing import Optional
+from typing import Optional, Literal, Any
 
 import sounddevice
-import soundfile
+import ffmpeg
 
 # - Streaming audio
 
-def loop_stream_audio(
-    file: soundfile.SoundFile,
-    frames: Optional[int] = 65536,
-    dtype: Optional[str] = "int16",
+def loop_stream_ffmpeg(
+    filename: str,
     *,
-    seekable: Optional[bool] = None,
+    buffer: Optional[bool] = None,
+    input_kwargs: Optional[dict[str, Any]] = None,
 ):
-    """Forever yields audio chunks from the file
+    """Forever yields audio chunks from the file using FFmpeg
 
-    - frames => 65536
-    - dtype => "int16"
-    - seekable => file.seekable()
+    - filename is the file to loop (can be - or pipe: to use stdin)
+    - buffer => file in ("pipe:", "-"): whether to buffer in memory to loop
+    - input_kwargs => {}: specify extra input arguments (useful for PCM files)
 
-    Both arguments are passed to file.buffer_read to get the next chunk.
+    The yielded chunks are hard coded to be 48000 Hz signed 16 bit little
+    endian stereo.
 
-    To loop the audio, seekable files use seeking, and unseekable ones use an
-    internal buffer instead.
+    If buffer is True or file is - or pipe:, loop_stream will be used to
+    loop the audio. Otherwise, -stream_loop -1 will be used.
 
     """
-    if frames is None:
-        frames = 65536
-    if dtype is None:
-        dtype = "int16"
-    if seekable is None:
-        seekable = file.seekable()
+    if filename == "-":
+        filename = "pipe:"
+    if buffer is None:
+        buffer = filename == "pipe:"
+    if input_kwargs is None:
+        input_kwargs = {}
 
-    if not seekable:
-        # Samplesize is dtype * channels
-        samplesize = _DTYPE_SIZE[dtype] * file.channels
-        errors = []
-        def _error_append(err: int, prefix: str = ""):
-            if err != 0:
-                errors.append((err, prefix))
+    if not buffer:
+        # -1 means to loop forever
+        input_kwargs.setdefault("stream_loop", -1)
 
-        # Read blocks until EOF
-        buffers = collections.deque()
-        while True:
-            block = bytearray(frames * samplesize)
+    # Create stream from FFmpeg subprocess
+    stream = _stream_subprocess(
+        ffmpeg
+            .input(filename, **input_kwargs)
+            .output("pipe:", f="s16le", ar=48000, ac=2)
+            .global_args("-loglevel", "error", "-nostdin")  # Quieter output
+            .run_async(pipe_stdout=True)
+    )
 
-            # libsndfile raises an SF_ERR_SYSTEM (2) error when EOF occurs
-            # inside a block so we're appending errors to a list for later
-            # processing.
-            original_error_check = soundfile._error_check
-            soundfile._error_check = _error_append
-            try:
-                frames_read = file.buffer_read_into(block, dtype=dtype)
-            finally:
-                soundfile._error_check = original_error_check
+    if buffer:
+        # Loop forever using an in memory buffer if necessary
+        stream = loop_stream(stream)
 
-            # Process errors
-            if errors:
-                for err, prefix in errors:
-                    if frames_read != frames and err == 2:
-                        # We probably hit EOF. Ignore error
-                        continue
-                    soundfile._error_check(err, prefix)
-                errors.clear()
+    yield from stream
 
-            # Truncate unwritten bytes
-            if frames_read != frames:
-                del block[frames_read * samplesize : ]
+# - Streaming process stdout
 
-            buffers.append(block)
-            yield block
+def _stream_subprocess(
+    process: subprocess.Popen,
+    *,
+    close: Optional[bool] = True,
+):
+    """Yield chunks from the process's stdout
 
-            # Break if it's the last block
-            if frames_read != frames:
-                break
+    - process is the subprocess to stream stdout from
+    - close => True: whether to terminate the process when finished
 
-        # Yield buffers forever
-        while True:
-            yield from buffers
+    """
+    if close is None:
+        close = True
 
-    # Seekable files
+    _read = process.stdout.read  # Remove attribute lookup
+    stream = iter(lambda: _read(65536), b"")  # Yield until b""
+
+    if not close:
+        # Stream stdout until EOF
+        yield from stream
+        return
+
+    with process:
+        try:
+            yield from stream
+        finally:
+            # Terminating instead of closing pipes makes FFmpeg not cry
+            # "Error writing trailer of pipe:: Broken pipe" on .mp3s
+            process.terminate()
+
+# - Looping audio stream
+
+def loop_stream(
+    data_iterable: Iterable[bytes],
+    *,
+    copy: Optional[bool] = True,
+    when_empty: Optional[Literal["ignore", "error"]] = "error",
+):
+    """Consumes a stream of buffers and loops them forever
+
+    - data_iterable: the iterable of buffers
+    - copy => True: whether or not to copy the buffers
+    - when_empty => "error": what to do when data is empty (ignore or error)
+
+    The buffers are reused upon looping. If the buffers are known to be unused
+    after being yielded, you can set copy to False to save some time copying.
+
+    When sum(len(b) for b in buffers) == 0, a RuntimeError will be raised.
+    Otherwise, this function can end up in an infinite loop, or it can cause
+    other functions to never yield (such as equal_chunk_stream). This behaviour
+    is almost never useful, though if necessary, pass when_empty="ignore" to
+    suppress the error.
+
+    """
+    if copy is None:
+        copy = True
+    if when_empty is None:
+        when_empty = "error"
+    if when_empty not in ("ignore", "error"):
+        raise ValueError("when_empty must be ignore or error")
+    data_iterator = iter(data_iterable)
+
+    # Deques have a guaranteed O(1) append; lists have worst case O(n)
+    data_buffers = collections.deque()
+    data_buffers_size = 0
+
+    if copy:
+        # Read and copy data until empty
+        while (data := next(data_iterator, None)) is not None:
+            data = bytes(data)  # copy = True
+            data_buffers.append(data)
+            data_buffers_size += len(data)
+            yield data
+
+    else:
+        # Read data until empty
+        while (data := next(data_iterator, None)) is not None:
+            data_buffers.append(data)
+            data_buffers_size += len(data)
+            yield data
+
+    # Sanity check for empty buffer length
+    if when_empty == "error" and data_buffers_size == 0:
+        raise RuntimeError("empty data buffers")
+
+    # Yield buffers forever
     while True:
-        while block := file.buffer_read(frames, dtype=dtype):
-            yield block
-        file.seek(0)
+        yield from data_buffers
 
 # - Chunking audio stream
 
@@ -162,49 +221,38 @@ def equal_chunk_stream(
 
 # - Playing audio
 
-# Only contains the types from soundfile
-_DTYPE_SIZE = {
-    "int16": 2,
-    "int32": 4,
-    "float32": 4,
-    "float64": 8,
-}
-
-def loop_play_audio(
-    file: soundfile.SoundFile,
+def play_stream(
+    stream: Iterable[bytes],
     *,
-    dtype: Optional[str] = "int16",
-    seekable: Optional[bool] = None,
+    output: Optional[sounddevice.RawOutputStream] = None,
 ):
-    """Seamlessly loop plays an audio file
+    """Plays a stream
 
-    - file is the soundfile.SoundFile instance
-    - dtype => "int16"
-    - seekable => file.seekable()
+    - data_iterable is the 48000 Hz signed 16 bit little endian stereo audio
+    - output is an optional output stream (should have same format)
 
     """
-    if dtype is None:
-        dtype = "int16"
-    if seekable is None:
-        seekable = file.seekable()
+    if output is None:
+        output = sounddevice.RawOutputStream(
+            samplerate=48000,
+            channels=2,
+            dtype="int16",
+        )
+    else:
+        # Caller is responsible for closing the output stream
+        output = contextlib.nullcontext(output)
 
-    # Blocksize is 20 ms * dtype * channels
-    blocksize = (
-        round(file.samplerate * 0.02)
-        * _DTYPE_SIZE[dtype]
-        * file.channels
-    )
+    # Use sounddevice._split in case output is a duplex stream
+    blocksize = sounddevice._split(output.blocksize)[1]
 
-    stream = loop_stream_audio(file, dtype=dtype, seekable=seekable)
+    if not blocksize:
+        # Blocksize is 20 ms * dtype * channels
+        blocksize = (
+            round(output.samplerate * 0.02)
+            * sounddevice._split(output.samplesize)[1]
+        )
 
-    # Matching the input's format so we don't need to do resampling / mixing
-    with sounddevice.RawOutputStream(
-        samplerate=file.samplerate,
-        channels=file.channels,
-        dtype=dtype,
-        blocksize=blocksize,
-    ) as output:
-
+    with output as output:
         # Using the specified blocksize is better for performance
         for chunk in equal_chunk_stream(stream, blocksize):
             output.write(chunk)
@@ -232,16 +280,12 @@ def main(argv: Optional[list[str]] = None):
     file = args.filename
 
     if file == "-":
-        # Even though file descriptors are technically not supported on
-        # Windows (see https://github.com/bastibe/python-soundfile/issues/63),
-        # stdin being 0 is _probably_ something that we can rely on.
-        file = 0
+        file = "pipe:"
 
-    with soundfile.SoundFile(file) as audio:
-        try:
-            loop_play_audio(audio)
-        except KeyboardInterrupt:
-            parser.exit()
+    try:
+        play_stream(loop_stream_ffmpeg(file))
+    except KeyboardInterrupt:
+        parser.exit()
 
 if __name__ == "__main__":
     main()

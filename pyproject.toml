@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "playbacque"
-version = "0.1.1"
+version = "0.2.0"
 description = "Loop play audio"
 authors = ["George Zhang <geetransit@gmail.com>"]
 homepage = "https://pypi.org/project/playbacque/"
@@ -23,7 +23,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 sounddevice = "^0.4.4"
-SoundFile = "^0.10.3"
+ffmpeg-python = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 
