@@ -11,6 +11,9 @@ from typing import Optional, Literal, Any
 import sounddevice
 import ffmpeg
 
+# FFmpeg arguments for PCM audio
+_PCM_KWARGS = dict(f="s16le", ar=48000, ac=2)
+
 # - Streaming audio
 
 def loop_stream_ffmpeg(
@@ -47,7 +50,7 @@ def loop_stream_ffmpeg(
     stream = _stream_subprocess(
         ffmpeg
             .input(filename, **input_kwargs)
-            .output("pipe:", f="s16le", ar=48000, ac=2)
+            .output("pipe:", **_PCM_KWARGS)
             .global_args("-loglevel", "error", "-nostdin")  # Quieter output
             .run_async(pipe_stdout=True)
     )
