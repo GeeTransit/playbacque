@@ -242,17 +242,17 @@ def play_stream(
         # Caller is responsible for closing the output stream
         output = contextlib.nullcontext(output)
 
-    # Use sounddevice._split in case output is a duplex stream
-    blocksize = sounddevice._split(output.blocksize)[1]
-
-    if not blocksize:
-        # Blocksize is 20 ms * dtype * channels
-        blocksize = (
-            round(output.samplerate * 0.02)
-            * sounddevice._split(output.samplesize)[1]
-        )
-
     with output as output:
+        # Use sounddevice._split in case output is a duplex stream
+        blocksize = sounddevice._split(output.blocksize)[1]
+
+        if not blocksize:
+            # Blocksize is 20 ms * dtype * channels
+            blocksize = (
+                round(output.samplerate * 0.02)
+                * sounddevice._split(output.samplesize)[1]
+            )
+
         # Using the specified blocksize is better for performance
         for chunk in equal_chunk_stream(stream, blocksize):
             output.write(chunk)
