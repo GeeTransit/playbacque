@@ -269,6 +269,11 @@ parser.add_argument(
     "filename",
     help="file to play, use - for stdin",
 )
+parser.add_argument(
+    "-p", "--pcm",
+    action="store_true",
+    help="file is PCM audio (48000 Hz signed 16 bit little endian stereo)",
+)
 
 def main(argv: Optional[list[str]] = None):
     """Command line entry point
@@ -285,8 +290,15 @@ def main(argv: Optional[list[str]] = None):
     if file == "-":
         file = "pipe:"
 
+    input_kwargs = None
+    if args.pcm:
+        input_kwargs = _PCM_KWARGS
+
+    # Create stream (with PCM input if specified)
+    stream = loop_stream_ffmpeg(file, input_kwargs=input_kwargs)
+
     try:
-        play_stream(loop_stream_ffmpeg(file))
+        play_stream(stream)
     except KeyboardInterrupt:
         parser.exit()
 
