@@ -313,10 +313,14 @@ def main(argv: Optional[list[str]] = None):
 
     try:
         if args.out:
-            # Output to stdout if specified
-            _write = sys.stdout.buffer.write
-            for chunk in stream:
-                _write(chunk)
+            try:
+                # Output to stdout if specified
+                _write = sys.stdout.buffer.write
+                for chunk in stream:
+                    _write(chunk)
+
+            except BrokenPipeError:
+                parser.exit()
 
         else:
             # Play to default device
