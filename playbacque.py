@@ -279,6 +279,11 @@ parser.add_argument(
     action="store_true",
     help="output PCM audio to stdout instead of playing it",
 )
+parser.add_argument(
+    "-b", "--buffer",
+    action="store_true",
+    help="force a buffer to be used for looping (such as for URLs)",
+)
 
 def main(argv: Optional[list[str]] = None):
     """Command line entry point
@@ -300,7 +305,11 @@ def main(argv: Optional[list[str]] = None):
         input_kwargs = _PCM_KWARGS
 
     # Create stream (with PCM input if specified)
-    stream = loop_stream_ffmpeg(file, input_kwargs=input_kwargs)
+    stream = loop_stream_ffmpeg(
+        file,
+        buffer=args.buffer,
+        input_kwargs=input_kwargs,
+    )
 
     try:
         if args.out:
