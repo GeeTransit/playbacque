@@ -14,6 +14,9 @@ import ffmpeg
 # FFmpeg arguments for PCM audio
 _PCM_KWARGS = dict(f="s16le", ar=48000, ac=2)
 
+# sounddevice arguments for PCM audio
+_PCM_SETTINGS = dict(samplerate=48000, channels=2, dtype="int16")
+
 # - Streaming audio
 
 def loop_stream_ffmpeg(
@@ -236,11 +239,7 @@ def play_stream(
 
     """
     if output is None:
-        output = sounddevice.RawOutputStream(
-            samplerate=48000,
-            channels=2,
-            dtype="int16",
-        )
+        output = sounddevice.RawOutputStream(**_PCM_SETTINGS)
     else:
         # Caller is responsible for closing the output stream
         output = contextlib.nullcontext(output)
@@ -358,9 +357,7 @@ def main(argv: Optional[list[str]] = None):
             # Play to the specified device
             with sounddevice.RawOutputStream(
                 device=args.device,
-                samplerate=48000,
-                channels=2,
-                dtype="int16",
+                **_PCM_SETTINGS,
             ) as output:
                 play_stream(stream, output=output)
 
