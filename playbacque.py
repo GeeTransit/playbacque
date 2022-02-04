@@ -291,25 +291,25 @@ parser.add_argument(
     help="file to play, use - for stdin",
 )
 parser.add_argument(
+    "-b", "--buffer",
+    action="store_true",
+    help="force a buffer to be used for looping (such as for URLs)",
+)
+parser.add_argument(
     "-p", "--pcm",
     action="store_true",
     help="file is PCM audio (48000 Hz signed 16 bit little endian stereo)",
 )
 out_group = parser.add_mutually_exclusive_group()
 out_group.add_argument(
-    "-D", "--device",
-    type=int,
-    help="play to the specified device instead of the default",
-)
-out_group.add_argument(
     "-o", "--out",
     action="store_true",
     help="output PCM audio to stdout instead of playing it",
 )
-parser.add_argument(
-    "-b", "--buffer",
-    action="store_true",
-    help="force a buffer to be used for looping (such as for URLs)",
+out_group.add_argument(
+    "-D", "--device",
+    type=int,
+    help="play to the specified device instead of the default",
 )
 parser.add_argument(
     "-L", "--list-devices",
