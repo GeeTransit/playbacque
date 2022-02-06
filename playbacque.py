@@ -5,8 +5,8 @@ import sys
 import collections
 import contextlib
 import subprocess
-from collections.abc import Iterable
-from typing import Optional, Literal, Any
+from typing import Optional, Any, Iterable, List, Dict
+from typing_extensions import Literal
 
 import sounddevice
 import ffmpeg
@@ -23,7 +23,7 @@ def loop_stream_ffmpeg(
     filename: str,
     *,
     buffer: Optional[bool] = None,
-    input_kwargs: Optional[dict[str, Any]] = None,
+    input_kwargs: Optional[Dict[str, Any]] = None,
 ):
     """Forever yields audio chunks from the file using FFmpeg
 
@@ -134,7 +134,10 @@ def loop_stream(
 
     if copy:
         # Read and copy data until empty
-        while (data := next(data_iterator, None)) is not None:
+        while True:
+            data = next(data_iterator, None)
+            if data is None:
+                break
             data = bytes(data)  # copy = True
             data_buffers.append(data)
             data_buffers_size += len(data)
@@ -142,7 +145,10 @@ def loop_stream(
 
     else:
         # Read data until empty
-        while (data := next(data_iterator, None)) is not None:
+        while True:
+            data = next(data_iterator, None)
+            if data is None:
+                break
             data_buffers.append(data)
             data_buffers_size += len(data)
             yield data
@@ -312,7 +318,7 @@ parser.add_argument(
     help="list detected devices (in python-sounddevice format)",
 )
 
-def main(argv: Optional[list[str]] = None):
+def main(argv: Optional[List[str]] = None):
     """Command line entry point
 
     - argv => sys.argv[1:]

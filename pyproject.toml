@@ -13,7 +13,6 @@ classifiers = [
 	"License :: OSI Approved :: MIT License",
 	"Operating System :: OS Independent",
 	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.9",
 	"Topic :: Multimedia :: Sound/Audio :: Players",
 ]
 packages = [
@@ -21,9 +20,10 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.7"
 sounddevice = "^0.4.0"
 ffmpeg-python = "^0.2.0"
+typing-extensions = "^4.0.0"
 
 [tool.poetry.dev-dependencies]
 
