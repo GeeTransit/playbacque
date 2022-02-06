@@ -47,7 +47,7 @@ def loop_stream_ffmpeg(
 
     if not buffer:
         # -1 means to loop forever
-        input_kwargs.setdefault("stream_loop", -1)
+        input_kwargs = {**input_kwargs, "stream_loop": -1}
 
     # Create stream from FFmpeg subprocess
     stream = _stream_subprocess(
