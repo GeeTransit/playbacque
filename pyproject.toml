@@ -23,8 +23,8 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://pypi.org/project/playbacque/"
-repository = "https://github.com/GeeTransit/playbacque"
+Homepage = "https://pypi.org/project/playbacque/"
+Repository = "https://github.com/GeeTransit/playbacque"
 
 [project.scripts]
 playbacque = "playbacque:main"
