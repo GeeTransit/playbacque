@@ -3,7 +3,7 @@ name = "playbacque"
 version = "0.2.2"
 description = "Loop play audio"
 authors = [
-	{ name = "George Zhang", email = "<geetransit@gmail.com>" },
+	{ name = "George Zhang", email = "geetransit@gmail.com" },
 ]
 readme = "README.md"
 license = { text = "MIT" }
