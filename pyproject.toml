@@ -15,7 +15,7 @@ classifiers = [
 	"Programming Language :: Python :: 3",
 	"Topic :: Multimedia :: Sound/Audio :: Players",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.7,<4.0"
 dependencies = [
 	"sounddevice>=0.4.0,<0.5.0",
 	"ffmpeg-python>=0.2.0,<0.3.0",
