@@ -1,12 +1,12 @@
-[tool.poetry]
+[project]
 name = "playbacque"
 version = "0.2.2"
 description = "Loop play audio"
-authors = ["George Zhang <geetransit@gmail.com>"]
-homepage = "https://pypi.org/project/playbacque/"
-repository = "https://github.com/GeeTransit/playbacque"
+authors = [
+	{ name = "George Zhang", email = "<geetransit@gmail.com>" },
+]
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 classifiers = [
 	"Development Status :: 3 - Alpha",
 	"Intended Audience :: End Users/Desktop",
@@ -15,21 +15,26 @@ classifiers = [
 	"Programming Language :: Python :: 3",
 	"Topic :: Multimedia :: Sound/Audio :: Players",
 ]
-packages = [
-	{ include = "playbacque.py" },
+requires-python = ">=3.7"
+dependencies = [
+	"sounddevice>=0.4.0,<0.5.0",
+	"ffmpeg-python>=0.2.0,<0.3.0",
+	"typing-extensions>=4.0.0,<5.0.0",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-sounddevice = "^0.4.0"
-ffmpeg-python = "^0.2.0"
-typing-extensions = "^4.0.0"
+[project.urls]
+homepage = "https://pypi.org/project/playbacque/"
+repository = "https://github.com/GeeTransit/playbacque"
 
-[tool.poetry.dev-dependencies]
-
-[tool.poetry.scripts]
+[project.scripts]
 playbacque = "playbacque:main"
 
+[tool.pdm]
+[[tool.pdm.source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"

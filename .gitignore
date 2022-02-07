@@ -1,4 +1,6 @@
 __pycache__/
-poetry.lock
+__pypackages__/
+pdm.lock
+.pdm.toml
 .random/
 dist/
