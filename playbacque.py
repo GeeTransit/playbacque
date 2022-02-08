@@ -315,7 +315,7 @@ out_group.add_argument(
 parser.add_argument(
     "-L", "--list-devices",
     action=_ListDevicesAction,
-    help="list detected devices (in python-sounddevice format)",
+    help="show detected devices in python-sounddevice format and exit",
 )
 
 def main(argv: Optional[List[str]] = None):
