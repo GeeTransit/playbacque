@@ -6,7 +6,10 @@ import collections
 import contextlib
 import subprocess
 from typing import Optional, Any, Iterable, List, Dict
-from typing_extensions import Literal
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 import sounddevice
 import ffmpeg
