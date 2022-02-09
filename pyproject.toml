@@ -1,6 +1,5 @@
 [project]
 name = "playbacque"
-version = "0.2.2"
 description = "Loop play audio"
 authors = [
 	{ name = "George Zhang", email = "geetransit@gmail.com" },
@@ -22,6 +21,7 @@ dependencies = [
 	"typing-extensions>=4.0.0,<5.0.0;python_version<'3.8'",
 	"importlib-metadata>=4.0.0,<5.0.0;python_version<'3.8'",
 ]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://pypi.org/project/playbacque/"
@@ -31,6 +31,8 @@ Repository = "https://github.com/GeeTransit/playbacque"
 playbacque = "playbacque:main"
 
 [tool.pdm]
+version = { use_scm = true }
+
 [[tool.pdm.source]]
 name = "pypi"
 url = "https://pypi.org/simple"
