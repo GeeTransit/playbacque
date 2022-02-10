@@ -33,11 +33,6 @@ playbacque = "playbacque:main"
 [tool.pdm]
 version = { use_scm = true }
 
-[[tool.pdm.source]]
-name = "pypi"
-url = "https://pypi.org/simple"
-verify_ssl = true
-
 [build-system]
 requires = ["pdm-pep517"]
 build-backend = "pdm.pep517.api"
