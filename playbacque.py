@@ -10,11 +10,11 @@ try:
 except ModuleNotFoundError:
     import importlib_metadata
 
-from typing import Optional, Any, Iterable, List, Dict
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
+from typing import TYPE_CHECKING, Optional, Any, Iterable, List, Dict
+if sys.version_info >= (3, 10):
+    from typing import Literal, TypeAlias
+else:
+    from typing_extensions import Literal, TypeAlias
 
 import sounddevice
 import ffmpeg
@@ -74,8 +74,13 @@ def loop_stream_ffmpeg(
 
 # - Streaming process stdout
 
+if TYPE_CHECKING or sys.version_info >= (3, 9):
+    Popen: TypeAlias = subprocess.Popen[bytes]
+else:
+    Popen: TypeAlias = subprocess.Popen
+
 def _stream_subprocess(
-    process: subprocess.Popen,
+    process: Popen,
     *,
     close: Optional[bool] = True,
 ):
