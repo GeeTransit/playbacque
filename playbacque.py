@@ -273,42 +273,12 @@ def play_stream(
 
 # Modified from argparse._HelpAction (it immediately exits when specified)
 class _ListDevicesAction(argparse.Action):
-    def __init__(
-        self,
-        option_strings,
-        dest=argparse.SUPPRESS,
-        default=argparse.SUPPRESS,
-        **kwargs,
-    ):
-        super().__init__(
-            option_strings=option_strings,
-            dest=dest,
-            default=default,
-            nargs=0,
-            **kwargs,
-        )
-
     def __call__(self, parser, namespace, values, option_string=None):
         print(str(sounddevice.query_devices()))
         parser.exit()
 
 # Delay version retrieval (because it's kinda slow)
 class _VersionAction(argparse.Action):
-    def __init__(
-        self,
-        option_strings,
-        dest=argparse.SUPPRESS,
-        default=argparse.SUPPRESS,
-        **kwargs,
-    ):
-        super().__init__(
-            option_strings=option_strings,
-            dest=dest,
-            default=default,
-            nargs=0,
-            **kwargs,
-        )
-
     def __call__(self, parser, namespace, values, option_string=None):
         try:
             version = importlib_metadata.version('playbacque')
@@ -348,11 +318,13 @@ out_group.add_argument(
 parser.add_argument(
     "-L", "--list-devices",
     action=_ListDevicesAction,
+    nargs=0,
     help="show detected devices in python-sounddevice format and exit",
 )
 parser.add_argument(
     "-V", "--version",
     action=_VersionAction,
+    nargs=0,
     help="show program's version number and exit",
 )
 
