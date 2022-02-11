@@ -5,6 +5,7 @@ import sys
 import collections
 import contextlib
 import subprocess
+import errno
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
@@ -96,6 +97,9 @@ def _stream_subprocess(
     """
     if close is None:
         close = True
+
+    if process.stdout is None:
+        raise ValueError("process has no stdout")
 
     _read = process.stdout.read  # Remove attribute lookup
     stream = iter(lambda: _read(65536), b"")  # Yield until b""
@@ -372,7 +376,14 @@ def main(argv: Optional[List[str]] = None):
                     _write(chunk)
 
             except BrokenPipeError:
-                parser.exit()
+                parser.exit(message="error: stdout closed")
+
+            # We could get an OSError: [Errno 22] Invalid argument if stdout is
+            # closed before we manage to output anything (for some reason)
+            except OSError as e:
+                if e.errno != errno.EINVAL:
+                    raise
+                parser.exit(message="error: stdout closed")
 
         elif args.device is not None:
             # Play to the specified device
@@ -388,6 +399,9 @@ def main(argv: Optional[List[str]] = None):
 
     except KeyboardInterrupt:
         parser.exit()
+
+    else:
+        parser.exit(1)  # FFmpeg probably has printed an error to stderr
 
 if __name__ == "__main__":
     main()
