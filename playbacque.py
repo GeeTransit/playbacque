@@ -310,6 +310,7 @@ parser.add_argument(
 parser.add_argument(
     "-b", "--buffer",
     action="store_true",
+    default=None,
     help="force a buffer to be used for looping (such as for URLs)",
 )
 parser.add_argument(
