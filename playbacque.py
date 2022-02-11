@@ -12,9 +12,13 @@ except ModuleNotFoundError:
 
 from typing import TYPE_CHECKING, Optional, Any, Iterable, List, Dict
 if sys.version_info >= (3, 10):
-    from typing import Literal, TypeAlias
+    from typing import TypeAlias
 else:
-    from typing_extensions import Literal, TypeAlias
+    from typing_extensions import TypeAlias
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 import sounddevice
 import ffmpeg
