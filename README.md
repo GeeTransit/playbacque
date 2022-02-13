@@ -34,3 +34,9 @@ To write PCM encoded audio to stdout, pass `--out`
 To specify a specific audio device to output to, pass `--device <id>` (list devices using `--list-devices`)
 
 On Windows, there is a `Microsoft Sound Mapper - Output, MME (0 in, 2 out)` device that redirects to the default output device and also works after disconnecting
+
+## Development
+
+This project uses Hatch for project management and hatch-vcs for getting the version from Git tags when building
+
+However, other tools can be used, such as virtualenv for isolating dependencies, pip to install the project, build to build the project, twine to publish the project
