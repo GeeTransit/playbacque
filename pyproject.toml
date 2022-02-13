@@ -30,9 +30,12 @@ Repository = "https://github.com/GeeTransit/playbacque"
 [project.scripts]
 playbacque = "playbacque:main"
 
-[tool.pdm]
-version = { use_scm = true }
+[tool.hatch]
+version = { source = "vcs" }
+
+[tool.hatch.build.targets.sdist]
+[tool.hatch.build.targets.wheel]
 
 [build-system]
-requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"

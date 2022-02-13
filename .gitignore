@@ -1,6 +1,4 @@
-__pycache__/
-__pypackages__/
-pdm.lock
-.pdm.toml
-.random/
-dist/
+/.*
+/__*
+/dist/
+!/.gitignore
