@@ -45,12 +45,14 @@ skip-install = true
 dependencies = [
     "flake8>=4.0.0",
     "pyproject-flake8>=0.0.1a2",
+    "mypy>=0.901",
 ]
 
 [tool.hatch.envs.lint.scripts]
 # TODO: Change to flake8 when it supports pyproject.toml
 style = "pflake8 playbacque.py"
-all = ["style"]
+typing = "mypy --install-types --non-interactive playbacque.py"
+all = ["style", "typing"]
 
 [tool.hatch.envs.test.scripts]
 doctest = "python -m doctest playbacque.py"
@@ -62,6 +64,10 @@ matrix = [ { python = ["3.7", "3.8", "3.9", "3.10"] } ]
 
 [tool.flake8]
 extend-ignore = "E302, E305"
+
+[tool.mypy]
+strict = true
+show_error_codes = true
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

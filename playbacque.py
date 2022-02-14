@@ -6,29 +6,32 @@ import collections
 import contextlib
 import subprocess
 import errno
-try:
+if sys.version_info >= (3, 8):
     import importlib.metadata as importlib_metadata
-except ModuleNotFoundError:
+else:
     import importlib_metadata
 
-from typing import TYPE_CHECKING, Optional, Any, Iterable, List, Dict
+from typing import (
+    TYPE_CHECKING, Optional, Any, Iterable, List, Dict, Deque, Iterator,
+    NoReturn,
+)
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
     from typing_extensions import TypeAlias
 if sys.version_info >= (3, 8):
-    from typing import Literal
+    from typing import Literal, Final
 else:
-    from typing_extensions import Literal
+    from typing_extensions import Literal, Final
 
-import sounddevice
-import ffmpeg
+import sounddevice  # type: ignore[import]
+import ffmpeg  # type: ignore[import]
 
 # FFmpeg arguments for PCM audio
-_PCM_KWARGS = dict(f="s16le", ar=48000, ac=2)
+_PCM_KWARGS: Final = dict(f="s16le", ar=48000, ac=2)
 
 # sounddevice arguments for PCM audio
-_PCM_SETTINGS = dict(samplerate=48000, channels=2, dtype="int16")
+_PCM_SETTINGS: Final = dict(samplerate=48000, channels=2, dtype="int16")
 
 # - Streaming audio
 
@@ -37,7 +40,7 @@ def loop_stream_ffmpeg(
     *,
     buffer: Optional[bool] = None,
     input_kwargs: Optional[Dict[str, Any]] = None,
-):
+) -> Iterator[bytes]:
     """Forever yields audio chunks from the file using FFmpeg
 
     - filename is the file to loop (can be - or pipe: to use stdin)
@@ -88,7 +91,7 @@ def _stream_subprocess(
     process: Popen,
     *,
     close: Optional[bool] = True,
-):
+) -> Iterator[bytes]:
     """Yield chunks from the process's stdout
 
     - process is the subprocess to stream stdout from
@@ -124,7 +127,7 @@ def loop_stream(
     *,
     copy: Optional[bool] = True,
     when_empty: Optional[Literal["ignore", "error"]] = "error",
-):
+) -> Iterator[bytes]:
     """Consumes a stream of buffers and loops them forever
 
     - data_iterable: the iterable of buffers
@@ -150,7 +153,7 @@ def loop_stream(
     data_iterator = iter(data_iterable)
 
     # Deques have a guaranteed O(1) append; lists have worst case O(n)
-    data_buffers = collections.deque()
+    data_buffers: Deque[bytes] = collections.deque()
     data_buffers_size = 0
 
     if copy:
@@ -187,7 +190,7 @@ def loop_stream(
 def equal_chunk_stream(
     data_iterable: Iterable[bytes],
     buffer_len: int,
-):
+) -> Iterator[bytes]:
     """Normalizes a stream of buffers into ones of length buffer_len
 
     - data_iterable is the iterable of buffers.
@@ -235,14 +238,14 @@ def equal_chunk_stream(
 
         # Data is consumed
         if data_ptr == data_len:
-            data = next(data_iterator, None)
-            if data is None:
+            data_item = next(data_iterator, None)
+            if data_item is None:
                 # Yield everything that we have left (could be b"") so that
                 # other code can simply check the length to know if the stream
                 # is ending.
                 yield buffer[:buffer_ptr]
                 return
-            data = memoryview(data)
+            data = memoryview(data_item)
             data_ptr = 0
             data_len = len(data)
 
@@ -258,7 +261,7 @@ def play_stream(
     stream: Iterable[bytes],
     *,
     output: Optional[sounddevice.RawOutputStream] = None,
-):
+) -> None:
     """Plays a stream
 
     - data_iterable is the 48000 Hz signed 16 bit little endian stereo audio
@@ -286,21 +289,22 @@ def play_stream(
 
 # Modified from argparse._HelpAction (it immediately exits when specified)
 class _ListDevicesAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser: argparse.ArgumentParser, *_: Any) -> NoReturn:
         print(str(sounddevice.query_devices()))
         parser.exit()
 
 # Delay version retrieval (because it's kinda slow)
 class _VersionAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser: argparse.ArgumentParser, *_: Any) -> NoReturn:
         try:
-            version = importlib_metadata.version('playbacque')
+            # Alternative to importlib_metadata.version (which isn't typed)
+            version = importlib_metadata.metadata("playbacque")["version"]
         except importlib_metadata.PackageNotFoundError:
             version = "UNKNOWN"
         print(f"{parser.prog} {version}")
         parser.exit()
 
-parser = argparse.ArgumentParser(
+parser: Final = argparse.ArgumentParser(
     description="Loop play audio",
 )
 parser.add_argument(
@@ -342,7 +346,7 @@ parser.add_argument(
     help="show program's version number and exit",
 )
 
-def main(argv: Optional[List[str]] = None):
+def main(argv: Optional[List[str]] = None) -> NoReturn:
     """Command line entry point
 
     - argv => sys.argv[1:]
