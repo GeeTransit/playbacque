@@ -39,4 +39,4 @@ On Windows, there is a `Microsoft Sound Mapper - Output, MME (0 in, 2 out)` devi
 
 This project uses Hatch for project management and hatch-vcs for getting the version from Git tags when building
 
-However, other tools can be used, such as virtualenv for isolating dependencies, pip to install the project, build to build the project, twine to publish the project
+However, other tools can be used, such as virtualenv for isolating dependencies, pip to install the project, build to build the project, and twine to publish the project
