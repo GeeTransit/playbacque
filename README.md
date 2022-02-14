@@ -40,3 +40,38 @@ On Windows, there is a `Microsoft Sound Mapper - Output, MME (0 in, 2 out)` devi
 This project uses Hatch for project management and hatch-vcs for getting the version from Git tags when building
 
 However, other tools can be used, such as virtualenv for isolating dependencies, pip to install the project, build to build the project, and twine to publish the project
+
+I recommend using pipx to install Hatch and hatch-vcs
+
+Install pipx globally
+
+```sh
+> pip install --user pipx
+> pipx ensurepath
+```
+
+Install Hatch 1.0 (currently in prerelease) and inject the hatch-vcs plugin
+
+```sh
+> pipx install "hatch>=1.0.0.dev"
+> pipx inject hatch hatch-vcs
+```
+
+Run the project using Hatch
+
+```sh
+> hatch run playbacque -V
+```
+
+Run linters and tests
+
+```sh
+> hatch run lint:all
+> hatch run test:all
+```
+
+If you have Python 3.7 - 3.10 all installed for some reason, run tests on all of them
+
+```sh
+> hatch run test-matrix:all
+```
