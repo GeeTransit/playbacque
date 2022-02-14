@@ -65,7 +65,7 @@ def loop_stream_ffmpeg(
     # Create stream from FFmpeg subprocess
     stream = _stream_subprocess(
         ffmpeg
-            .input(filename, **input_kwargs)
+            .input(filename, **input_kwargs)  # noqa: E131
             .output("pipe:", **_PCM_KWARGS)
             .global_args("-loglevel", "error", "-nostdin")  # Quieter output
             .run_async(pipe_stdout=True)

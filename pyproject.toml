@@ -40,6 +40,18 @@ include = ["playbacque.py"]
 [tool.hatch.build.targets.sdist]
 [tool.hatch.build.targets.wheel]
 
+[tool.hatch.envs.lint]
+skip-install = true
+dependencies = [
+    "flake8>=4.0.0",
+    "pyproject-flake8>=0.0.1a2",
+]
+
+[tool.hatch.envs.lint.scripts]
+# TODO: Change to flake8 when it supports pyproject.toml
+style = "pflake8 playbacque.py"
+all = ["style"]
+
 [tool.hatch.envs.test.scripts]
 doctest = "python -m doctest playbacque.py"
 all = ["doctest"]
@@ -47,6 +59,9 @@ all = ["doctest"]
 [tool.hatch.envs.test-matrix]
 template = "test"
 matrix = [ { python = ["3.7", "3.8", "3.9", "3.10"] } ]
+
+[tool.flake8]
+extend-ignore = "E302, E305"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
