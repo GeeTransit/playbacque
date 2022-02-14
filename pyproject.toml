@@ -33,6 +33,10 @@ playbacque = "playbacque:main"
 [tool.hatch]
 version = { source = "vcs" }
 
+[tool.hatch.build]
+ignore-vcs = true
+include = ["playbacque.py"]
+
 [tool.hatch.build.targets.sdist]
 [tool.hatch.build.targets.wheel]
 
