@@ -47,7 +47,7 @@ def loop_stream_ffmpeg(
     - buffer => file in ("pipe:", "-"): whether to buffer in memory to loop
     - input_kwargs => {}: specify extra input arguments (useful for PCM files)
 
-    The yielded chunks are hard coded to be 48000 Hz signed 16 bit little
+    The yielded chunks are hard coded to be 48000 Hz signed 16-bit little
     endian stereo.
 
     If buffer is True or file is - or pipe:, loop_stream will be used to
@@ -202,7 +202,7 @@ def equal_chunk_stream(
     collection.
 
     The last buffer yielded is always smaller than buffer_len. Other code can
-    fill it with zeros, drop it, or execute clean up code
+    fill it with zeros, drop it, or execute clean up code.
 
         >>> list(map(bytes, equal_chunk_stream([b"abcd", b"efghi"], 3)))
         [b'abc', b'def', b'ghi', b'']
@@ -264,7 +264,7 @@ def play_stream(
 ) -> None:
     """Plays a stream
 
-    - data_iterable is the 48000 Hz signed 16 bit little endian stereo audio
+    - data_iterable is the 48000 Hz signed 16-bit little endian stereo audio
     - output is an optional output stream (should have same format)
 
     """
@@ -320,7 +320,7 @@ parser.add_argument(
 parser.add_argument(
     "-p", "--pcm",
     action="store_true",
-    help="file is PCM audio (48000 Hz signed 16 bit little endian stereo)",
+    help="file is PCM audio (48000 Hz signed 16-bit little endian stereo)",
 )
 out_group = parser.add_mutually_exclusive_group()
 out_group.add_argument(
