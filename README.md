@@ -37,11 +37,11 @@ On Windows, there is a `Microsoft Sound Mapper - Output, MME (0 in, 2 out)` devi
 
 ## Development
 
-This project uses Hatch for project management and hatch-vcs for getting the version from Git tags when building
+This project uses [Hatch](https://ofek.dev/hatch/) for project management and [hatch-vcs](https://github.com/ofek/hatch-vcs) for getting the version from Git tags when building
 
 However, other tools can be used, such as virtualenv for isolating dependencies, pip to install the project, build to build the project, and twine to publish the project
 
-I recommend using pipx to install Hatch and hatch-vcs
+I recommend using [pipx](https://pypa.github.io/pipx/) to install Hatch and hatch-vcs
 
 Install pipx globally
 
