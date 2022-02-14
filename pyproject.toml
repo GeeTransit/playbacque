@@ -44,6 +44,10 @@ include = ["playbacque.py"]
 doctest = "python -m doctest playbacque.py"
 all = ["doctest"]
 
+[tool.hatch.envs.test-matrix]
+template = "test"
+matrix = [ { python = ["3.7", "3.8", "3.9", "3.10"] } ]
+
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
