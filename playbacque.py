@@ -50,8 +50,8 @@ def loop_stream_ffmpeg(
     The yielded chunks are hard coded to be 48000 Hz signed 16-bit little
     endian stereo.
 
-    If buffer is True or file is - or pipe:, loop_stream will be used to
-    loop the audio. Otherwise, -stream_loop -1 will be used.
+    If buffer is True or file is - or pipe:, loop_stream will be used to loop
+    the audio. Otherwise, -stream_loop -1 will be used.
 
     """
     if filename == "-":
@@ -116,8 +116,8 @@ def _stream_subprocess(
         try:
             yield from stream
         finally:
-            # Terminating instead of closing pipes makes FFmpeg not cry
-            # "Error writing trailer of pipe:: Broken pipe" on .mp3s
+            # Terminating instead of closing pipes makes FFmpeg not cry "Error
+            # writing trailer of pipe:: Broken pipe" on .mp3s
             process.terminate()
 
 # - Looping audio stream
@@ -197,8 +197,8 @@ def equal_chunk_stream(
     - buffer_len is the size to normalize buffers to
 
     Note that the yielded buffer is not guaranteed to be unchanged. Basically,
-    create a copy if it needs to be used for longer than a single iteration.
-    It may be reused inside this function to reduce object creation and
+    create a copy if it needs to be used for longer than a single iteration. It
+    may be reused inside this function to reduce object creation and
     collection.
 
     The last buffer yielded is always smaller than buffer_len. Other code can
