@@ -297,7 +297,7 @@ class _ListDevicesAction(argparse.Action):
 class _VersionAction(argparse.Action):
     def __call__(self, parser: argparse.ArgumentParser, *_: Any) -> NoReturn:
         try:
-            # Alternative to importlib_metadata.version (which isn't typed)
+            # TODO: Replace with importlib_metadata.version when it's typed
             version = importlib_metadata.metadata("playbacque")["version"]
         except importlib_metadata.PackageNotFoundError:
             version = "UNKNOWN"
