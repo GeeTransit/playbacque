@@ -1,4 +1,4 @@
-/.*
-/__*
-/dist/
-!/.git*
+__pycache__
+dist
+.mypy_cache
+.random
