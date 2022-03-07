@@ -33,13 +33,6 @@ playbacque = "playbacque:main"
 [tool.hatch]
 version = { source = "vcs" }
 
-[tool.hatch.build]
-ignore-vcs = true
-include = ["playbacque.py"]
-
-[tool.hatch.build.targets.sdist]
-[tool.hatch.build.targets.wheel]
-
 [tool.hatch.envs.lint]
 skip-install = true
 dependencies = [
@@ -70,5 +63,5 @@ strict = true
 show_error_codes = true
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling>=0.15.0", "hatch-vcs"]
 build-backend = "hatchling.build"
